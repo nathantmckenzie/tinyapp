@@ -2,9 +2,15 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+const cookieParser = require("cookie-parser");
 
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+app.use(function(req, res, next) {
+    res.locals.username = req.cookies.username;
+    next();
+  });
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -55,14 +61,31 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-    delete urlDatabase[req.params.shortURL];
-    res.redirect('/urls');
-})
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
+});
+
+app.post("/urls/:shortURL/edit", (req, res) => {
+    urlDatabase[req.body.longURL] = req.body.longURL;
+    res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+    res.cookie("username", req.body.username);
+    res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+    res.clearCookie('username');
+    res.redirect("/urls");
+});
+
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
