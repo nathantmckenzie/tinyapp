@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -19,6 +17,8 @@
         <tr>
           <th scope="col">Short URL</th>
           <th scope="col">Long URL</th>
+          <th scope="col">Edit</th>
+          <th scope="col">Delete</th>
         </tr>
       </thead>
       <tbody>
@@ -26,6 +26,8 @@
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
+            <td><form method="GET" action="/urls/<%= url %>"><button type="submit" class="btn btn-primary">Edit</button></form></td>
+            <td><form method="POST" action="/urls/<%= url %>/delete"><button type="submit" class="btn btn-primary">Delete</button></form></td>
           </tr>
         <% } %>
       </tbody>
