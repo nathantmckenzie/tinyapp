@@ -29,10 +29,10 @@ const users = {
       password: "purple-monkey-dinosaur"
     },
     "2": {
-        id: "2",
-        email: "usesdfffar@example.com", 
-        password: "puasdfle-monkey-dinosaur"
-      }
+      id: "2",
+      email: "usesdfffar@example.com", 
+      password: "puasdfle-monkey-dinosaur"
+    }
   }
 
   const genNextId = () => {
@@ -67,13 +67,21 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+    const emailCheck = function(email) {
+        for (let i = 0; i <= users.length; i++) {
+          if (users[i].email === email) {
+              return true;
+          }
+        }
+        return false;
+    }
     if(req.body.email === '' || req.body.password === '') {
         res.statusCode = 400;
         res.send(`${res.statusCode}: Email Or Password Input Missing`);
-    } //else if () {
-      //  res.statusCode = 400;
-      //  res.send(`${res.statusCode}: EMAIL EXISTS`);
-    //}
+    } else if (emailCheck(req.body.email)) {
+        res.statusCode = 400;
+        res.send(`${res.statusCode}: Email Already Exists`);
+    }
     const password = req.body.password;
     const email = req.body.email;
     const id = genNextId();
