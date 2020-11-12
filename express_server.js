@@ -45,9 +45,9 @@ const generateRandomString = () => {
 }
 
 const emailCheck = function(emailInput) {
-  for (let i = 0; i <= users.length; i++) {
-    if (users[i].email === emailInput) {
-        return true;
+  for (const keys in users) {
+    if (users[keys].email === emailInput) {
+      return true;
     }
   }
   return false;
@@ -110,19 +110,22 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-    if(req.body.email === '' || req.body.password === '') {
-       res.status(400).send('Email Or Password Input Missing');
-    } else if (emailCheck(req.body.email)) {
-       res.status(400).send('Email Already Exists');
-    }
+  if (req.body.email === '' || req.body.password === '') {  //works
+    res.status(400).send('Email Or Password Input Missing');
+  } else if (emailCheck(req.body.email)) { //doesn't work 
+    res.status(400).send('Email Already Exists');
+  } 
+  
     const id = genNextId();
     const email = req.body.email;
+    console.log(email);
     const password = req.body.password;
     const user = { id, email, password };
     users[id] = user;
+    
     console.log(users);
     res.cookie('user_id', id);
-    res.redirect('/urls_login');
+    res.redirect('/urls');
 });
 
 
@@ -152,7 +155,7 @@ app.post("/login", (req, res) => {
     
     let foundUser = null;
     for (const id in users) {
-      if (users[id].email === email) {
+      if (emailCheck(email)) {
         foundUser = users[id];
       }
     }
@@ -164,7 +167,6 @@ app.post("/login", (req, res) => {
     }
     res.cookie("user_id", foundUser.id);
     res.redirect("/urls");
-
 });
 
 app.post("/logout", (req, res) => {
