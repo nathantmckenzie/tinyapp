@@ -17,6 +17,28 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.get('/login', (req, res) => {
+    res.render('urls_login');
+  });
+
+
+const users = { 
+    "1": {
+      id: "1",
+      email: "user@example.com", 
+      password: "purple-monkey-dinosaur"
+    },
+    "2": {
+        id: "2",
+        email: "usesdfffar@example.com", 
+        password: "puasdfle-monkey-dinosaur"
+      }
+  }
+
+  const genNextId = () => {
+    return Object.keys(users).length + 1;
+  };
+
 const generateRandomString = () => {
   const length = 6;
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -27,14 +49,41 @@ const generateRandomString = () => {
 
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
 
+
+
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+  res.render("urls_new", templateVars);
 });
+
+app.get("/register", (req, res) => {
+    const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+    res.render("register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+    if(req.body.email === '' || req.body.password === '') {
+        res.statusCode = 400;
+        res.send(`${res.statusCode}: Email Or Password Input Missing`);
+    } //else if () {
+      //  res.statusCode = 400;
+      //  res.send(`${res.statusCode}: EMAIL EXISTS`);
+    //}
+    const password = req.body.password;
+    const email = req.body.email;
+    const id = genNextId();
+    const user = { id, email, password };
+    users[id] = user;
+    console.log(users);
+    res.cookie('user_id', id);
+    res.redirect('/urls');
+});
+
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
@@ -71,15 +120,19 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-    res.cookie("username", req.body.username);
+    res.cookie("user_id", req.body.user);
     res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-    res.clearCookie('username');
+    res.clearCookie('user_id');
     res.redirect("/urls");
 });
 
+app.get("/urls_login", (req, res) => {
+    const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+    res.render('urls_login', templateVars);
+});
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
