@@ -147,7 +147,7 @@ app.post("/register", (req, res) => {
     users[id] = user;
     
     console.log(users);
-    res.cookie('user_id', id);
+    req.session['user_id'] = id;
     res.redirect('/urls');
 });
 
@@ -186,23 +186,21 @@ app.post("/login", (req, res) => {
         foundUser = users[id];
       }
     }
-    console.log(foundUser.password);
-    if (!bcrypt.compareSync(password, foundUser.password)) {
-      return res.send('Incorrect Password - Try Again');
-    }
 
     if (foundUser === null) {
       res.status(400).send('No User With That Email Found'); 
     }
-    if (foundUser.password !== password) {
-      res.status(401).send('Incorrect Password');
+
+    if (!bcrypt.compareSync(password, foundUser.password)) {
+      res.send('Incorrect Password - Try Again');
     }
-    res.session("user_id", foundUser.id);
+  
+    req.session["user_id"] = foundUser.id;
     res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-    res.session = null;
+    req.session = null;
     res.redirect("/urls");
 });
 
