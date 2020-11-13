@@ -6,7 +6,7 @@ const cookieSession = require("cookie-session");
 const bcrypt = require('bcrypt');
 const getUserByEmail = require("./helpers");
 
-//-------------------------------------------------------------------------------
+
 app.use(cookieSession({
   name: 'session',
   keys: ['LHL RULEZ']
@@ -15,7 +15,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
 
-//------------------------------------------------------------------------------
+
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
@@ -67,7 +67,7 @@ const urlsForUser = (id) => {
   return obj;
 };
 
-//------------------------------------------------------------------------------
+
 
 app.get("/urls", (req, res) => {
   const urls = urlsForUser(req.session["user_id"]);
@@ -130,7 +130,7 @@ app.get("/register", (req, res) => {
     res.render("register", templateVars);
 });
 
-//------------------------------------------------------------------------------
+
 
 app.post("/register", (req, res) => {
   if (req.body.email === '' || req.body.password === '') {  //works
@@ -178,18 +178,19 @@ app.post("/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     if (!password || !email) { 
-      res.status(400).send('Please Enter an Email and Password') //this works correctly
+      res.status(400).send('Please Enter an Email and Password')
     }
 
-    if (!bcrypt.compareSync(password, foundUser.password)) {
-      return res.send('Incorrect Password');
-    }
-    
     for (const id in users) {
       if (emailCheck(email)) {
         foundUser = users[id];
       }
     }
+    console.log(foundUser.password);
+    if (!bcrypt.compareSync(password, foundUser.password)) {
+      return res.send('Incorrect Password - Try Again');
+    }
+
     if (foundUser === null) {
       res.status(400).send('No User With That Email Found'); 
     }
