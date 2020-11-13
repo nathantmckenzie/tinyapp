@@ -1,16 +1,18 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080; 
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
+const bcrypt = require('bcrypt');
 
-app.use(cookieParser());
+//-------------------------------------------------------------------------------
+app.use(cookieSession({
+  name: 'session',
+  keys: ['LHL RULEZ']
+}));
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
-app.use(function(req, res, next) {
-    res.locals.username = req.cookies.username;
-    next();
-  });
+
 
 //------------------------------------------------------------------------------
 const urlDatabase = {
@@ -67,16 +69,16 @@ const urlsForUser = (id) => {
 //------------------------------------------------------------------------------
 
 app.get("/urls", (req, res) => {
-  const urls = urlsForUser(req.cookies["user_id"]);
-  const templateVars = { user: users[req.cookies["user_id"]], urls: urls };
-  if (!req.cookies["user_id"]) {
-    res.send("Login to continue")
-  }
+  const urls = urlsForUser(req.session["user_id"]);
+  const templateVars = { user: users[req.session["user_id"]], urls: urls };
+  //if (!req.cookies["user_id"]) {
+  //  res.send("Login to continue")
+  //}
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls_login", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+  const templateVars = { user: users[req.session["user_id"]], urls: urlDatabase };
   res.render('urls_login', templateVars);
 });
 
@@ -87,10 +89,10 @@ app.get("/u/:shortURL", (req, res) => {
 
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = {user: users[req.cookies["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  if (!req.cookies["user_id"]) {
-    res.send("Login to continue")
-  }
+  const templateVars = {user: users[req.session["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  //if (!req.cookies["user_id"]) {
+  //  res.send("Login to continue")
+  //}
   res.render("urls_show", templateVars);
 });
 
@@ -109,21 +111,21 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-    const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
-    if (!users[req.cookie["user_id"]]); {
+    const templateVars = { user: users[req.session["user_id"]], urls: urlDatabase };
+    if (!users[req.session["user_id"]]); {
       res.redirect('/login');
     } 
     res.render("urls_new", templateVars);
 });
 
 app.get('/login', (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+  const templateVars = { user: users[req.session["user_id"]], urls: urlDatabase };
   res.render('urls_login', templateVars);
 });
 
 
 app.get("/register", (req, res) => {
-    const templateVars = { user: users[req.cookies["user_id"]], urls: urlDatabase };
+    const templateVars = { user: users[req.session["user_id"]], urls: urlDatabase };
     res.render("register", templateVars);
 });
 
@@ -135,12 +137,12 @@ app.post("/register", (req, res) => {
   } else if (emailCheck(req.body.email)) { //doesn't work 
     res.status(400).send('Email Already Exists');
   } 
-  
+
     const id = genNextId();
     const email = req.body.email;
-    console.log(email);
     const password = req.body.password;
-    const user = { id, email, password };
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const user = { id, email, password: hashedPassword };
     users[id] = user;
     
     console.log(users);
@@ -167,13 +169,17 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
+    let foundUser = null;
     const email = req.body.email;
     const password = req.body.password;
     if (!password || !email) { 
       res.status(400).send('Please Enter an Email and Password') //this works correctly
     }
+
+    if (!bcrypt.compareSync(password, foundUser.password)) {
+      return res.send('Incorrect Password');
+    }
     
-    let foundUser = null;
     for (const id in users) {
       if (emailCheck(email)) {
         foundUser = users[id];
