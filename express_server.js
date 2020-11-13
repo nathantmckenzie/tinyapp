@@ -4,6 +4,7 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require('bcrypt');
+const getUserByEmail = require("./helpers");
 
 //-------------------------------------------------------------------------------
 app.use(cookieSession({
@@ -71,9 +72,9 @@ const urlsForUser = (id) => {
 app.get("/urls", (req, res) => {
   const urls = urlsForUser(req.session["user_id"]);
   const templateVars = { user: users[req.session["user_id"]], urls: urls };
-  //if (!req.cookies["user_id"]) {
-  //  res.send("Login to continue")
-  //}
+  if (!req.session["user_id"]) {
+     res.redirect("/login")
+  }
   res.render("urls_index", templateVars);
 });
 
@@ -90,9 +91,9 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {user: users[req.session["user_id"]], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-  //if (!req.cookies["user_id"]) {
-  //  res.send("Login to continue")
-  //}
+  if (!req.session["user_id"]) {
+    res.redirect("/login");
+  }
   res.render("urls_show", templateVars);
 });
 
@@ -102,7 +103,7 @@ app.get("/", (req, res) => {
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
+})
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
@@ -159,13 +160,17 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if (req.session["user_id"]) {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
+  }
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
+  if (req.session["user_id"]) {
     urlDatabase[req.body.longURL] = req.body.longURL;
     res.redirect("/urls");
+  }
 });
 
 app.post("/login", (req, res) => {
@@ -191,12 +196,12 @@ app.post("/login", (req, res) => {
     if (foundUser.password !== password) {
       res.status(401).send('Incorrect Password');
     }
-    res.cookie("user_id", foundUser.id);
+    res.session("user_id", foundUser.id);
     res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-    res.clearCookie('user_id');
+    res.session = null;
     res.redirect("/urls");
 });
 
