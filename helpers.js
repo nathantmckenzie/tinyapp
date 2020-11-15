@@ -1,5 +1,6 @@
 //HELPER FUNCTIONS
 
+//GETS A USER BASED ON THE EMAIL INPUT
 const getUserByEmail = function(email, database) {
     let user;
     for (const key in database) {
@@ -11,6 +12,7 @@ const getUserByEmail = function(email, database) {
   };
 
 
+//GENERATES A RANDOM, UNIQUE ALPHANUMERICAL VALUE THAT WILL BE THE ID FOR EACH NEW USER
   const generateRandomString = () => {
     const length = 6;
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -19,6 +21,8 @@ const getUserByEmail = function(email, database) {
     return result;
   }
 
+  //CREATES AN OBJECT THAT WILL BE INSERTED INTO THE USERS OBJECT. THIS OBJECT WILL CONTAIN THE USER ID
+  //AND THE LONG URL THAT WAS USED BY THE USER OF THAT USER ID
   const urlsForUser = (id) => {
     let URLS = {};
     for (const url in urlDatabase) {
@@ -29,22 +33,11 @@ const getUserByEmail = function(email, database) {
     return URLS;
   };
 
-  const emailCheck = function(emailInput) {
-    for (const keys in users) {
-      if (users[keys].email === emailInput) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
 
   //USERS AND URL DATABASE
-
   const users = { 
     "1": {
-      id: "1",
+      id: "random",
       email: "user@example.com", 
       password: "purple-monkey-dinosaur"
     },
@@ -56,9 +49,9 @@ const getUserByEmail = function(email, database) {
   }
 
   const urlDatabase = {
-    b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-    i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+    b6UTxQ: { id: "random", longURL: "https://www.tsn.ca" },
+    i3BoGr: { id: "aJ48lW", longURL: "https://www.google.ca" }
   };
 
 
-module.exports = { getUserByEmail, urlsForUser, generateRandomString, emailCheck, urlDatabase, users };
+module.exports = { getUserByEmail, urlsForUser, generateRandomString, urlDatabase, users };
